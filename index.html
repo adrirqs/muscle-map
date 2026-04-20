@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carte Musculaire Interactive</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161922;
+    --border: #252a35;
+    --text: #e8eaf0;
+    --muted: #6b7385;
+    --accent: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+
+  header span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    height: calc(100vh - 80px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .sidebar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    padding: 0 24px 16px;
+    text-transform: uppercase;
+  }
+
+  .muscle-item {
+    padding: 12px 24px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .muscle-item:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .muscle-item.active {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .muscle-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .muscle-side {
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .chevron {
+    color: var(--muted);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+  }
+
+  .muscle-item.active .chevron { transform: rotate(90deg); }
+
+  /* MAIN PANEL */
+  .main {
+    display: grid;
+    grid-template-rows: 1fr 280px;
+  }
+
+  .figure-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    gap: 80px;
+  }
+
+  .figure-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .figure-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+
+  .body-svg {
+    width: 200px;
+    height: auto;
+    filter: drop-shadow(0 8px 32px rgba(0,0,0,0.6));
+  }
+
+  .body-svg .muscle-region {
+    cursor: pointer;
+    transition: opacity 0.2s, filter 0.2s;
+  }
+
+  .body-svg .muscle-region:hover {
+    opacity: 0.85;
+    filter: brightness(1.15);
+  }
+
+  .body-svg .muscle-region.highlighted {
+    filter: brightness(1.3) drop-shadow(0 0 6px currentColor);
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+
+  .body-svg .muscle-region.dimmed {
+    opacity: 0.2;
+  }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 28px 40px;
+    overflow-y: auto;
+  }
+
+  .detail-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .detail-content { display: none; }
+  .detail-content.visible { display: block; }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .detail-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  .detail-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    color: #fff;
+  }
+
+  .detail-side-badge {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--border);
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: var(--muted);
+  }
+
+  .subcategories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .subcat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    color: var(--text);
+    border-left-width: 3px;
+    transition: background 0.15s;
+  }
+
+  .subcat-card:hover { background: rgba(255,255,255,0.03); }
+
+  .subcat-name { font-weight: 500; }
+  .subcat-detail { color: var(--muted); font-size: 0.74rem; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Anatomie Musculaire</h1>
+  <span>Carte Interactive Complète</span>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-title">Groupes Musculaires</div>
+    <div id="muscle-list"></div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="figure-area">
+      <!-- FRONT SVG -->
+      <div class="figure-wrap">
+        <span class="figure-label">Antérieur</span>
+        <svg class="body-svg" viewBox="0 0 200 480" id="front-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- HEAD -->
+          <ellipse cx="100" cy="32" rx="28" ry="30" fill="#3a3d47"/>
+          <!-- NECK -->
+          <rect x="88" y="58" width="24" height="20" rx="4" fill="#3a3d47"/>
+
+          <!-- PECTORAUX (bleu clair) -->
+          <path class="muscle-region" data-id="pectoraux" fill="#5bc8d4" d="M68,80 Q100,75 132,80 L138,118 Q100,125 62,118 Z"/>
+
+          <!-- DELTOÏDES front (orange) -->
+          <path class="muscle-region" data-id="deltoides" fill="#e8883a" d="M56,78 Q44,85 40,108 L60,118 Q62,95 68,80 Z"/>
+          <path class="muscle-region" data-id="deltoides" fill="#e8883a" d="M144,78 Q156,85 160,108 L140,118 Q138,95 132,80 Z"/>
+
+          <!-- BICEPS (vert) -->
+          <path class="muscle-region" data-id="biceps" fill="#4a9e5c" d="M40,108 Q34,130 36,152 L54,148 Q56,128 60,118 Z"/>
+          <path class="muscle-region" data-id="biceps" fill="#4a9e5c" d="M160,108 Q166,130 164,152 L146,148 Q144,128 140,118 Z"/>
+
+          <!-- AVANT-BRAS front (jaune-vert) -->
+          <path class="muscle-region" data-id="avantbras" fill="#8dc63f" d="M36,152 Q32,176 34,198 L50,194 Q50,172 54,148 Z"/>
+          <path class="muscle-region" data-id="avantbras" fill="#8dc63f" d="M164,152 Q168,176 166,198 L150,194 Q150,172 146,148 Z"/>
+
+          <!-- MAINS -->
+          <ellipse cx="35" cy="208" rx="10" ry="12" fill="#3a3d47"/>
+          <ellipse cx="165" cy="208" rx="10" ry="12" fill="#3a3d47"/>
+
+          <!-- ABDOMINAUX (rouge) -->
+          <path class="muscle-region" data-id="abdominaux" fill="#c0392b" d="M78,118 Q100,115 122,118 L118,185 Q100,188 82,185 Z"/>
+
+          <!-- OBLIQUES (violet) -->
+          <path class="muscle-region" data-id="obliques" fill="#8e44ad" d="M62,118 L78,118 L82,185 L68,195 Q58,165 60,140 Z"/>
+          <path class="muscle-region" data-id="obliques" fill="#8e44ad" d="M138,118 L122,118 L118,185 L132,195 Q142,165 140,140 Z"/>
+
+          <!-- QUADRICEPS bleu foncé fond -->
+          <path class="muscle-region" data-id="quadriceps" fill="#2c5f8a" d="M68,200 L82,200 L84,300 L70,305 Q62,270 64,235 Z"/>
+          <path class="muscle-region" data-id="quadriceps" fill="#2c5f8a" d="M132,200 L118,200 L116,300 L130,305 Q138,270 136,235 Z"/>
+
+          <!-- QUADRICEPS jaune (droit fémoral visible) -->
+          <path class="muscle-region" data-id="quadriceps" fill="#f1c40f" d="M82,200 Q100,196 118,200 L116,300 Q100,308 84,300 Z"/>
+
+          <!-- GENOUX (gris) -->
+          <ellipse cx="84" cy="316" rx="14" ry="12" fill="#555"/>
+          <ellipse cx="116" cy="316" rx="14" ry="12" fill="#555"/>
+
+          <!-- TIBIAL ANTÉRIEUR (cyan) -->
+          <path class="muscle-region" data-id="tibial" fill="#1abc9c" d="M74,328 Q80,325 88,328 L86,390 Q80,395 74,390 Z"/>
+          <path class="muscle-region" data-id="tibial" fill="#1abc9c" d="M126,328 Q120,325 112,328 L114,390 Q120,395 126,390 Z"/>
+
+          <!-- MOLLETS (gris-bleu) -->
+          <path d="M88,328 Q96,325 100,328 L100,388 Q96,392 88,390 Z" fill="#6c7a8a"/>
+          <path d="M112,328 Q104,325 100,328 L100,388 Q104,392 112,390 Z" fill="#6c7a8a"/>
+
+          <!-- PIEDS -->
+          <ellipse cx="84" cy="400" rx="14" ry="8" fill="#3a3d47"/>
+          <ellipse cx="116" cy="400" rx="14" ry="8" fill="#3a3d47"/>
+        </svg>
+      </div>
+
+      <!-- BACK SVG -->
+      <div class="figure-wrap">
+        <span class="figure-label">Postérieur</span>
+        <svg class="body-svg" viewBox="0 0 200 480" id="back-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- HEAD -->
+          <ellipse cx="100" cy="32" rx="28" ry="30" fill="#3a3d47"/>
+          <!-- NECK -->
+          <rect x="88" y="58" width="24" height="20" rx="4" fill="#3a3d47"/>
+
+          <!-- TRAPÈZES (rouge-orange) -->
+          <path class="muscle-region" data-id="trapezes" fill="#e84c3d" d="M70,78 Q100,70 130,78 L136,130 Q100,140 64,130 Z"/>
+
+          <!-- DELTOÏDES arrière (orange) -->
+          <path class="muscle-region" data-id="deltoides" fill="#e8883a" d="M56,78 Q44,88 40,112 L60,122 Q62,100 70,78 Z"/>
+          <path class="muscle-region" data-id="deltoides" fill="#e8883a" d="M144,78 Q156,88 160,112 L140,122 Q138,100 130,78 Z"/>
+
+          <!-- TRICEPS (teal) -->
+          <path class="muscle-region" data-id="triceps" fill="#16a085" d="M40,112 Q34,135 36,158 L56,152 Q58,132 60,122 Z"/>
+          <path class="muscle-region" data-id="triceps" fill="#16a085" d="M160,112 Q166,135 164,158 L144,152 Q142,132 140,122 Z"/>
+
+          <!-- AVANT-BRAS arrière -->
+          <path class="muscle-region" data-id="avantbras" fill="#8dc63f" d="M36,158 Q32,180 34,200 L52,196 Q52,174 56,152 Z"/>
+          <path class="muscle-region" data-id="avantbras" fill="#8dc63f" d="M164,158 Q168,180 166,200 L148,196 Q148,174 144,152 Z"/>
+
+          <!-- MAINS -->
+          <ellipse cx="35" cy="210" rx="10" ry="12" fill="#3a3d47"/>
+          <ellipse cx="165" cy="210" rx="10" ry="12" fill="#3a3d47"/>
+
+          <!-- GRAND DORSAL (marron) -->
+          <path class="muscle-region" data-id="granddorsal" fill="#8B6347" d="M64,130 Q100,140 136,130 L132,195 Q100,205 68,195 Z"/>
+
+          <!-- ÉRECTEURS (brun foncé, centre) -->
+          <path class="muscle-region" data-id="erecteurs" fill="#6B4423" d="M90,130 L110,130 L108,195 L92,195 Z"/>
+
+          <!-- FESSIERS (magenta) -->
+          <path class="muscle-region" data-id="fessiers" fill="#e91e8c" d="M68,198 Q100,205 132,198 L130,270 Q100,278 70,270 Z"/>
+
+          <!-- ISCHIO-JAMBIERS (jaune-ocre) -->
+          <path class="muscle-region" data-id="ischiojambiers" fill="#d4a017" d="M70,270 Q85,278 100,278 L98,368 Q84,372 72,365 Z"/>
+          <path class="muscle-region" data-id="ischiojambiers" fill="#d4a017" d="M130,270 Q115,278 100,278 L102,368 Q116,372 128,365 Z"/>
+
+          <!-- GENOUX -->
+          <ellipse cx="84" cy="376" rx="14" ry="12" fill="#555"/>
+          <ellipse cx="116" cy="376" rx="14" ry="12" fill="#555"/>
+
+          <!-- MOLLETS arrière (bordeaux) -->
+          <path class="muscle-region" data-id="mollets" fill="#922b21" d="M74,388 Q84,384 94,388 L92,445 Q84,450 74,446 Z"/>
+          <path class="muscle-region" data-id="mollets" fill="#922b21" d="M126,388 Q116,384 106,388 L108,445 Q116,450 126,446 Z"/>
+
+          <!-- SOLÉAIRE (gris) -->
+          <path d="M94,388 Q100,385 106,388 L106,445 Q100,448 94,445 Z" fill="#6c7a8a"/>
+
+          <!-- PIEDS -->
+          <ellipse cx="84" cy="456" rx="14" ry="8" fill="#3a3d47"/>
+          <ellipse cx="116" cy="456" rx="14" ry="8" fill="#3a3d47"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel">
+      <div class="detail-empty" id="detail-empty">← Sélectionnez un groupe musculaire</div>
+      <div class="detail-content" id="detail-content">
+        <div class="detail-header">
+          <div class="detail-color" id="detail-color"></div>
+          <div class="detail-title" id="detail-title"></div>
+          <div class="detail-side-badge" id="detail-side"></div>
+        </div>
+        <div class="subcategories" id="subcategories"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const muscles = [
+  {
+    id: "pectoraux",
+    name: "Pectoraux",
+    color: "#5bc8d4",
+    side: "Antérieur",
+    subs: [
+      { name: "Grand pectoral — chef claviculaire", detail: "Partie supérieure, mobilise l'épaule vers l'avant" },
+      { name: "Grand pectoral — chef sternal", detail: "Partie centrale, adduction horizontale" },
+      { name: "Grand pectoral — chef abdominal", detail: "Partie inférieure, rotation interne" },
+      { name: "Petit pectoral", detail: "Profond, stabilise l'omoplate" },
+    ]
+  },
+  {
+    id: "deltoides",
+    name: "Deltoïdes",
+    color: "#e8883a",
+    side: "Antérieur / Postérieur",
+    subs: [
+      { name: "Faisceau antérieur", detail: "Flexion et rotation interne du bras" },
+      { name: "Faisceau moyen", detail: "Abduction du bras, portion latérale" },
+      { name: "Faisceau postérieur", detail: "Extension et rotation externe du bras" },
+    ]
+  },
+  {
+    id: "biceps",
+    name: "Biceps brachial",
+    color: "#4a9e5c",
+    side: "Antérieur",
+    subs: [
+      { name: "Chef long (longue portion)", detail: "Origine sur le tubercule supra-glénoïdal" },
+      { name: "Chef court (courte portion)", detail: "Origine sur le processus coracoïde" },
+      { name: "Brachial antérieur", detail: "Synergiste profond, fléchisseur pur du coude" },
+    ]
+  },
+  {
+    id: "avantbras",
+    name: "Avant-bras",
+    color: "#8dc63f",
+    side: "Antérieur / Postérieur",
+    subs: [
+      { name: "Fléchisseur radial du carpe", detail: "Flexion et abduction du poignet" },
+      { name: "Fléchisseur ulnaire du carpe", detail: "Flexion et adduction du poignet" },
+      { name: "Fléchisseurs des doigts", detail: "Fléchisseur superficiel + profond" },
+      { name: "Rond pronateur", detail: "Prono-flexion de l'avant-bras" },
+      { name: "Extenseurs du carpe", detail: "Extension dorsale du poignet" },
+      { name: "Supinateur", detail: "Supination de l'avant-bras" },
+    ]
+  },
+  {
+    id: "abdominaux",
+    name: "Abdominaux",
+    color: "#c0392b",
+    side: "Antérieur",
+    subs: [
+      { name: "Grand droit de l'abdomen", detail: "Flexion du tronc, les 'tablettes'" },
+      { name: "Oblique externe", detail: "Rotation et flexion latérale du tronc" },
+      { name: "Oblique interne", detail: "Rotation controlatérale, complémentaire" },
+      { name: "Transverse de l'abdomen", detail: "Gainant profond, stabilité lombaire" },
+    ]
+  },
+  {
+    id: "obliques",
+    name: "Obliques / Flancs",
+    color: "#8e44ad",
+    side: "Antérieur",
+    subs: [
+      { name: "Oblique externe", detail: "Couche superficielle, rotation ipsilatérale" },
+      { name: "Oblique interne", detail: "Couche intermédiaire, rotation contralatérale" },
+      { name: "Carré des lombes", detail: "Profond, élévation du bassin, stabilité lombaire" },
+    ]
+  },
+  {
+    id: "quadriceps",
+    name: "Quadriceps",
+    color: "#f1c40f",
+    side: "Antérieur",
+    subs: [
+      { name: "Droit fémoral", detail: "Bi-articulaire : flexion hanche + extension genou" },
+      { name: "Vaste latéral", detail: "Chef externe, extension du genou" },
+      { name: "Vaste médial", detail: "Chef interne, stabilise la rotule" },
+      { name: "Vaste intermédiaire", detail: "Chef central profond, extension du genou" },
+    ]
+  },
+  {
+    id: "tibial",
+    name: "Tibial antérieur",
+    color: "#1abc9c",
+    side: "Antérieur",
+    subs: [
+      { name: "Tibial antérieur", detail: "Dorsiflexion et inversion du pied" },
+      { name: "Long extenseur des orteils", detail: "Extension des 4 orteils latéraux" },
+      { name: "Long extenseur de l'hallux", detail: "Extension du gros orteil" },
+      { name: "Long fibulaire", detail: "Éversion et plantarflexion" },
+    ]
+  },
+  {
+    id: "trapezes",
+    name: "Trapèzes",
+    color: "#e84c3d",
+    side: "Postérieur",
+    subs: [
+      { name: "Trapèze supérieur", detail: "Élévation et rotation de l'omoplate, inclinaison cervicale" },
+      { name: "Trapèze moyen", detail: "Rétraction scapulaire, posture" },
+      { name: "Trapèze inférieur", detail: "Abaissement et rotation externe de l'omoplate" },
+    ]
+  },
+  {
+    id: "granddorsal",
+    name: "Grand dorsal",
+    color: "#8B6347",
+    side: "Postérieur",
+    subs: [
+      { name: "Portion iliaque", detail: "Origine sur la crête iliaque" },
+      { name: "Portion costale", detail: "Origine sur les 3-4 dernières côtes" },
+      { name: "Portion scapulaire", detail: "Origine sur l'angle inférieur de l'omoplate" },
+      { name: "Sous-épineux", detail: "Rotation externe de l'humérus (coiffe)" },
+      { name: "Petit rond", detail: "Rotation externe, stabilité gléno-humérale" },
+    ]
+  },
+  {
+    id: "triceps",
+    name: "Triceps brachial",
+    color: "#16a085",
+    side: "Postérieur",
+    subs: [
+      { name: "Chef long", detail: "Extension du coude + adduction du bras" },
+      { name: "Chef latéral", detail: "Extension puissante du coude" },
+      { name: "Chef médial (profond)", detail: "Extension fine, activé en permanence" },
+    ]
+  },
+  {
+    id: "erecteurs",
+    name: "Érecteurs du rachis",
+    color: "#6B4423",
+    side: "Postérieur",
+    subs: [
+      { name: "Ilio-costal", detail: "Portion latérale, extension et inclinaison latérale" },
+      { name: "Longissimus", detail: "Portion centrale, extenseur principal du rachis" },
+      { name: "Épineux", detail: "Portion médiale, stabilité vertébrale fine" },
+      { name: "Multifides", detail: "Profond, stabilité segmentaire intervertébrale" },
+    ]
+  },
+  {
+    id: "fessiers",
+    name: "Fessiers",
+    color: "#e91e8c",
+    side: "Postérieur",
+    subs: [
+      { name: "Grand fessier", detail: "Extension et rotation externe de la hanche, puissance" },
+      { name: "Moyen fessier", detail: "Abduction de la hanche, stabilité du bassin" },
+      { name: "Petit fessier", detail: "Abduction fine, rotation interne de la hanche" },
+      { name: "Piriforme", detail: "Rotation externe, stabilité sacro-iliaque" },
+    ]
+  },
+  {
+    id: "ischiojambiers",
+    name: "Ischio-jambiers",
+    color: "#d4a017",
+    side: "Postérieur",
+    subs: [
+      { name: "Biceps fémoral — chef long", detail: "Bi-articulaire : extension hanche + flexion genou" },
+      { name: "Biceps fémoral — chef court", detail: "Flexion du genou uniquement" },
+      { name: "Semi-tendineux", detail: "Extension hanche + rotation interne du tibia" },
+      { name: "Semi-membraneux", detail: "Extension hanche + flexion genou, médial" },
+    ]
+  },
+  {
+    id: "mollets",
+    name: "Mollets",
+    color: "#922b21",
+    side: "Postérieur",
+    subs: [
+      { name: "Gastrocnémien médial", detail: "Chef interne, plantarflexion puissante" },
+      { name: "Gastrocnémien latéral", detail: "Chef externe, plantarflexion" },
+      { name: "Soléaire", detail: "Profond, actif même genou fléchi, endurance" },
+      { name: "Plantaire", detail: "Vestigial, plantarflexion faible" },
+      { name: "Poplité", detail: "Déverrouillage du genou en flexion initiale" },
+    ]
+  },
+];
+
+// Build sidebar
+const list = document.getElementById('muscle-list');
+muscles.forEach(m => {
+  const el = document.createElement('div');
+  el.className = 'muscle-item';
+  el.dataset.id = m.id;
+  el.innerHTML = `
+    <div class="color-dot" style="background:${m.color}"></div>
+    <span class="muscle-name">${m.name}</span>
+    <span class="muscle-side">${m.side.includes('/') ? 'A+P' : m.side === 'Antérieur' ? 'ANT' : 'POST'}</span>
+    <span class="chevron">▶</span>
+  `;
+  el.addEventListener('click', () => selectMuscle(m.id));
+  list.appendChild(el);
+});
+
+function selectMuscle(id) {
+  const m = muscles.find(x => x.id === id);
+  if (!m) return;
+
+  // Sidebar active
+  document.querySelectorAll('.muscle-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+    el.style.borderLeftColor = el.dataset.id === id ? m.color : 'transparent';
+  });
+
+  // SVG highlight
+  document.querySelectorAll('.muscle-region').forEach(el => {
+    if (el.dataset.id === id) {
+      el.classList.add('highlighted');
+      el.classList.remove('dimmed');
+    } else {
+      el.classList.remove('highlighted');
+      el.classList.add('dimmed');
+    }
+  });
+
+  // Detail panel
+  document.getElementById('detail-empty').style.display = 'none';
+  const dc = document.getElementById('detail-content');
+  dc.classList.add('visible');
+  document.getElementById('detail-color').style.background = m.color;
+  document.getElementById('detail-title').textContent = m.name;
+  document.getElementById('detail-side').textContent = m.side;
+
+  const subs = document.getElementById('subcategories');
+  subs.innerHTML = m.subs.map(s => `
+    <div class="subcat-card" style="border-left-color:${m.color}">
+      <div class="subcat-name">${s.name}</div>
+      <div class="subcat-detail">${s.detail}</div>
+    </div>
+  `).join('');
+}
+
+// SVG click
+document.querySelectorAll('.muscle-region').forEach(el => {
+  el.addEventListener('click', () => selectMuscle(el.dataset.id));
+});
+</script>
+</body>
+</html>
