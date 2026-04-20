@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<!-- iPhone App Mode -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Muscle Map Pro">
+<meta name="theme-color" content="#0b0d12">
+
+<title>Muscle Map Pro</title>
+
+<style>
+:root{
+  --bg:#0b0d12;
+  --surface:#141822;
+  --border:#252b38;
+  --text:#f4f6fb;
+  --muted:#9aa3b5;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.06), transparent 40%),
+    var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.wrapper{
+  width:100%;
+  max-width:760px;
+}
+
+.card{
+  background:rgba(20,24,34,0.96);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:40px 28px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  text-align:center;
+}
+
+.logo{
+  width:82px;
+  height:82px;
+  border-radius:22px;
+  margin:0 auto 22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:38px;
+  background:linear-gradient(180deg,#ffffff,#d8dde8);
+  color:#0b0d12;
+  font-weight:700;
+}
+
+h1{
+  font-size:2.2rem;
+  margin-bottom:10px;
+  letter-spacing:-0.02em;
+}
+
+.subtitle{
+  color:var(--muted);
+  line-height:1.7;
+  font-size:1rem;
+  max-width:560px;
+  margin:0 auto 30px;
+}
+
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  align-items:center;
+}
+
+.btn{
+  display:inline-block;
+  width:min(100%, 340px);
+  padding:16px 22px;
+  border-radius:16px;
+  text-decoration:none;
+  font-weight:700;
+  font-size:1rem;
+  transition:.2s ease;
+}
+
+.btn-primary{
+  background:#ffffff;
+  color:#0b0d12;
+}
+
+.btn-secondary{
+  border:1px solid var(--border);
+  color:var(--text);
+  background:transparent;
+}
+
+.info{
+  margin-top:28px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:.95rem;
+  line-height:1.7;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:14px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:.82rem;
+  letter-spacing:.04em;
+  color:var(--muted);
+}
+
+@media (max-width:640px){
+  .card{
+    padding:32px 22px;
+    border-radius:24px;
+  }
+
+  h1{
+    font-size:1.9rem;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="card">
+    <div class="logo">MM</div>
+
+    <h1>Muscle Map Pro</h1>
+
+    <p class="subtitle">
+      Version premium optimisée iPhone.
+      Plein écran, rendu propre, ouverture style application,
+      expérience proche d’une vraie app App Store.
+    </p>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="muscle-map.html">
+        Ouvrir la carte musculaire
+      </a>
+
+      <a class="btn btn-secondary" href="#">
+        Ajouter à l’écran d’accueil via Safari
+      </a>
+    </div>
+
+    <div class="info">
+      Ouvre ce fichier dans Safari → bouton Partager → “Sur l’écran d’accueil”.
+      Ensuite l’application s’ouvrira directement depuis ton iPhone comme une vraie app.
+      <div class="badge">Premium Mobile Edition</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
